@@ -1,0 +1,105 @@
+services:
+  frontend:
+    image: my-frontend:local
+    ports:
+      - "8080:8080"
+    environment:
+      - PRODUCT_CATALOG_SERVICE_ADDR=productcatalogservice:3550
+      - CURRENCY_SERVICE_ADDR=currencyservice:7000
+      - CART_SERVICE_ADDR=cartservice:7070
+      - RECOMMENDATION_SERVICE_ADDR=recommendationservice:8081
+      - SHIPPING_SERVICE_ADDR=shippingservice:50051
+      - CHECKOUT_SERVICE_ADDR=checkoutservice:5050
+      - AD_SERVICE_ADDR=adservice:9555
+    depends_on:
+      - productcatalogservice
+      - currencyservice
+      - cartservice
+      - recommendationservice
+      - shippingservice
+      - checkoutservice
+      - adservice
+
+  productcatalogservice:
+    image: productcatalogservice
+    expose:
+      - "3550"
+
+  currencyservice:
+    image: currencyservice
+    expose:
+      - "7000"
+    environment:
+      - PORT=7000
+      - DISABLE_PROFILER=1
+
+  cartservice:
+    image: cartservice
+    expose:
+      - "7070"
+    environment:
+      - REDIS_ADDR=redis-cart:6379
+    depends_on:
+      - redis-cart
+
+  redis-cart:
+    image: redis:alpine
+    expose:
+      - "6379"
+
+  recommendationservice:
+    image: recommendationservice
+    expose:
+      - "8081"
+    environment:
+      - PORT=8081
+      - PRODUCT_CATALOG_SERVICE_ADDR=productcatalogservice:3550
+      - DISABLE_PROFILER=1
+
+  shippingservice:
+    image: shippingservice
+    expose:
+      - "50051"
+
+  checkoutservice:
+    image: checkoutservice
+    expose:
+      - "5050"
+    environment:
+      - PRODUCT_CATALOG_SERVICE_ADDR=productcatalogservice:3550
+      - SHIPPING_SERVICE_ADDR=shippingservice:50051
+      - CART_SERVICE_ADDR=cartservice:7070
+      - CURRENCY_SERVICE_ADDR=currencyservice:7000
+      - PAYMENT_SERVICE_ADDR=paymentservice:50051
+      - EMAIL_SERVICE_ADDR=emailservice:8080
+    depends_on:
+      - paymentservice
+      - emailservice
+      - cartservice
+
+  paymentservice:
+    image: paymentservice
+    expose:
+      - "50051"
+    environment:
+      - PORT=50051
+      - DISABLE_PROFILER=1
+
+  emailservice:
+    image: emailservice
+    expose:
+      - "8080"
+    environment:
+      - PORT=8080
+
+  adservice:
+    image: my-adservice:local
+    expose:
+      - "9555"
+
+  loadgenerator:
+    image: loadgenerator
+    depends_on:
+      - frontend
+    environment:
+      - FRONTEND_ADDR=frontend:8080
