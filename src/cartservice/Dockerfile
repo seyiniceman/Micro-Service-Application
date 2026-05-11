@@ -27,7 +27,8 @@ RUN dotnet publish cartservice.csproj \
     -p:TrimMode=Full \
     -c release \
     -o /cartservice \
-    --no-restore
+    --no-restore \
+    -p:ExcludeByFile="tests/**/*" 
 
 # https://mcr.microsoft.com/product/dotnet/runtime-deps
 FROM mcr.microsoft.com/dotnet/runtime-deps:8.0.0-rc.1-alpine3.18-amd64@sha256:417dd8282260a8229cbe36521ef61a63c16a689141f517419b48d8f8b2f2e684
