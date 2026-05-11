@@ -9,7 +9,8 @@ def services = [
     "paymentservice",
     "productcatalogservice",
     "recommendationservice",
-    "shippingservice"
+    "shippingservice",
+    "redis" // Added Redis database service
 ]
 
 pipeline {
@@ -21,12 +22,14 @@ pipeline {
                 script {
                     services.each { svc ->
                         stage("Building ${svc}") {
+                            // Use the Docker Hub credentials stored in Jenkins
                             withDockerRegistry(credentialsId: 'docker-hub', toolName: 'docker') {
-                                dir("/var/lib/jenkins/workspace/Microservice_Deployment/src/${svc}/") {
+                                // Use relative path from the current workspace
+                                dir("src/${svc}") {
                                     sh "docker build -t seyiniceman/${svc}:latest ."
                                     sh "docker push seyiniceman/${svc}:latest"
+                                    // Remove specific image only to save space without wiping cache
                                     sh "docker rmi seyiniceman/${svc}:latest"
-                                    sh "docker system prune -a -f --volumes"
                                 }
                             }
                         }
@@ -35,7 +38,24 @@ pipeline {
             }
         }
     }
+
+    post {
+        always {
+            script {
+                echo "Cleaning up workspace..."
+                // Removes unused data only after the entire pipeline finishes
+                sh "docker system prune -f"
+            }
+        }
+        success {
+            echo "All services, including Redis, were built and pushed successfully!"
+        }
+        failure {
+            echo "Pipeline failed. Check the logs for the specific service error."
+        }
+    }
 }
+
 // pipeline {
 //     agent any
 
