@@ -1,4 +1,4 @@
-services:
+ services:
   frontend:
     image: my-frontend:local
     ports:
@@ -102,4 +102,4 @@ services:
     depends_on:
       - frontend
     environment:
-      - FRONTEND_ADDR=frontend:8080
+      - FRONTEND_ADDR=frontend:8080  
